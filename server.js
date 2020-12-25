@@ -6,6 +6,8 @@ const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const colors = require("colors");
 const path = require("path");
+const passport = require("passport");
+const session = require("express-session");
 
 //Load env variables
 dotenv.config({ path: "./config/config.env" });
@@ -21,6 +23,14 @@ const app = express();
 //Setting views
 app.set("views", "views");
 
+//Session config
+
+app.use(
+  session({
+    secret: process.env.SESSION_KEY,
+  })
+);
+
 //Setting view engine
 app.set("view engine", "ejs");
 
@@ -34,6 +44,14 @@ if (process.env.NODE_ENV === "development") {
 
 //Body Parser
 app.use(bodyParser.urlencoded({ extended: false }));
+
+//Passport config
+require("./config/passport-setup")(passport);
+
+//Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(bodyParser.json());
 
 //Mount Routers
 app.use(users);

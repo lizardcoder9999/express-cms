@@ -1,6 +1,11 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const express = require("express");
+const passport = require("passport");
+const session = require("express-session");
+const path = require("path");
+const loginNotification = require("../utils/mail");
+const { time } = require("console");
 
 //@desc Register user
 //@route GET /register
@@ -42,4 +47,47 @@ exports.registerUser = async (req, res, next) => {
       });
     });
   });
+};
+
+//@desc Login user
+//@route GET /login
+//@access Public
+
+exports.renderLogin = async (req, res, next) => {
+  await res.render("login");
+};
+
+//@desc Login user
+//@route POST /login
+//@access Public
+
+exports.loginUser = async (req, res, next) => {
+  username = req.body.username;
+  requestIp = req.ip;
+  userTime = new Date();
+
+  await User.findOne({ username: username }, (err, obj) => {
+    if (err) {
+      throw err;
+    } else {
+      if (requestIp != obj.lastIp) {
+        loginNotification(username, requestIp, userTime, obj.email);
+        User.updateOne(
+          { username: username },
+          { $set: { lastIp: requestIp } },
+          (err, obj) => {
+            console.log(err);
+            console.log(obj);
+          }
+        );
+      }
+    }
+  });
+
+  passport.authenticate("local", {
+    successRedirect: "/home",
+    failureRedirect: "/login",
+  })(req, res, next);
+  ses = req.session;
+  ses.username = username;
 };
