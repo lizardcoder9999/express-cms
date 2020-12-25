@@ -7,7 +7,7 @@ const express = require("express");
 //@access Public
 
 exports.renderRegistrationForm = async (req, res, next) => {
-  res.render("register");
+  await res.render("register");
 };
 
 //@desc Register user
@@ -20,7 +20,7 @@ exports.registerUser = async (req, res, next) => {
   const email = req.body.password;
   const ip = req.ip;
 
-  let newUser = new User({
+  let newUser = await new User({
     username: username,
     password: password,
     email: email,
