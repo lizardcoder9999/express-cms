@@ -98,9 +98,17 @@ exports.loginUser = async (req, res, next) => {
   ses.username = username;
 };
 
+//@desc Login user via oauth
+//@route GET /google
+//@access Public
+
 exports.googleAuth = async (req, res, next) => {
   await passport.authenticate("google", { scope: ["profile", "email"] });
 };
+
+//@desc Google oauth callback url
+//@route GET /google/auth
+//@access Public
 
 exports.googleAuthCallback = async (req, res, next) => {
   await passport.authenticate("google", { failureRedirect: "/login" }),
@@ -109,6 +117,10 @@ exports.googleAuthCallback = async (req, res, next) => {
       res.redirect("/home");
     };
 };
+
+//@desc Logout user and remove sessions
+//@route GET /logout
+//@access Public
 
 exports.logoutUser = (req, res) => {
   req.session = null;
