@@ -8,6 +8,11 @@ const colors = require("colors");
 const path = require("path");
 const passport = require("passport");
 const session = require("express-session");
+const cookieSession = require("cookie-session");
+const googleMiddleware = require("./middleware/google");
+
+//Passport Google oauth config
+require("./config/passport-google");
 
 //Load env variables
 dotenv.config({ path: "./config/config.env" });
@@ -44,6 +49,17 @@ if (process.env.NODE_ENV === "development") {
 
 //Body Parser
 app.use(bodyParser.urlencoded({ extended: false }));
+
+//Cookie Session Config
+app.use(
+  session({
+    name: process.env.SESSION_NAME,
+    keys: [process.env.COOKIE_KEY_ONE, process.env.COOKIE_KEY_TWO],
+  })
+);
+
+// Google oauth middleware
+googleMiddleware();
 
 //Passport config
 require("./config/passport-setup")(passport);

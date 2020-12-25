@@ -6,6 +6,8 @@ const session = require("express-session");
 const path = require("path");
 const loginNotification = require("../utils/mail");
 const { time } = require("console");
+const cookieSession = require("cookie-session");
+require("../config/passport-google");
 
 //@desc Register user
 //@route GET /register
@@ -94,4 +96,22 @@ exports.loginUser = async (req, res, next) => {
   })(req, res, next);
   ses = req.session;
   ses.username = username;
+};
+
+exports.googleAuth = async (req, res, next) => {
+  await passport.authenticate("google", { scope: ["profile", "email"] });
+};
+
+exports.googleAuthCallback = async (req, res, next) => {
+  await passport.authenticate("google", { failureRedirect: "/login" }),
+    function (req, res) {
+      // Successful authentication, redirect home.
+      res.redirect("/home");
+    };
+};
+
+exports.logoutUser = (req, res) => {
+  req.session = null;
+  req.logout();
+  res.redirect("/login");
 };
