@@ -70,16 +70,20 @@ exports.loginUser = async (req, res, next) => {
     if (err) {
       throw err;
     } else {
-      if (requestIp != obj.lastIp) {
-        loginNotification(username, requestIp, userTime, obj.email);
-        User.updateOne(
-          { username: username },
-          { $set: { lastIp: requestIp } },
-          (err, obj) => {
-            console.log(err);
-            console.log(obj);
-          }
-        );
+      try {
+        if (requestIp != obj.lastIp) {
+          loginNotification(username, requestIp, userTime, obj.email);
+          User.updateOne(
+            { username: username },
+            { $set: { lastIp: requestIp } },
+            (err, obj) => {
+              console.log(err);
+              console.log(obj);
+            }
+          );
+        }
+      } catch (error) {
+        console.log(error);
       }
     }
   });
