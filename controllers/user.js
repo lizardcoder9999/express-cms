@@ -36,7 +36,6 @@ exports.registerUser = async (req, res, next) => {
       newUser.save((err) => {
         if (err) {
           throw err;
-          return;
         } else {
           res.redirect("login");
         }

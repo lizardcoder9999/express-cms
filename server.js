@@ -3,25 +3,40 @@ const dotenv = require("dotenv");
 const morgan = require("morgan");
 const connectDB = require("./config/db");
 const bodyParser = require("body-parser");
-const nunjucks = require("nunjucks");
+const ejs = require("ejs");
 const colors = require("colors");
+const path = require("path");
 
 //Load env variables
 dotenv.config({ path: "./config/config.env" });
+
+//Route files
+const users = require("./routes/users");
 
 //connect to database
 connectDB();
 
 const app = express();
 
-//Setting view engine
-app.set("view  engine", "html");
+//Setting views
+app.set("views", "views");
 
-//Views
-nunjucks.configure(["views/"], {
-  autoescape: false,
-  express: app,
-});
+//Setting view engine
+app.set("view engine", "ejs");
+
+//Static
+app.use(express.static(path.join(__dirname, "public")));
+
+//Dev logging middleware
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
+
+//Body Parser
+app.use(bodyParser.urlencoded({ extended: false }));
+
+//Mount Routers
+app.use(users);
 
 const PORT = process.env.PORT;
 
