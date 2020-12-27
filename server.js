@@ -60,7 +60,7 @@ app.use(
 );
 
 // Google oauth middleware
-googleMiddleware();
+// googleMiddleware();
 
 //Passport config
 require("./config/passport-setup")(passport);

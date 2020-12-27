@@ -26,7 +26,7 @@ exports.renderRegistrationForm = async (req, res, next) => {
 exports.registerUser = async (req, res, next) => {
   const username = req.body.username;
   const password = req.body.password;
-  const email = req.body.password;
+  const email = req.body.email;
   const ip = req.ip;
 
   let newUser = await new User({
@@ -147,18 +147,19 @@ exports.renderForgotPage = async (req, res) => {
 //@access Public
 
 exports.ForgotPasswordToken = async (req, res) => {
-  username = req.body.username;
+  const username = req.body.username;
   const add_minutes = function (dt, minutes) {
     return new Date(dt.getTime() + minutes * 60000);
   };
   const time = add_minutes(new Date(), 10).toString();
-  const decimalTime = time.replaceAll(":", "").substr("16", "6");
+  const decimalTime = time.replace(/:/g, "").substr("16", "6");
   const tokenExp = decimalTime;
   const token = Math.random()
     .toString(24)
     .replace(/[^a-z]+/g, "")
-    .substr(0, 5);
-  hashed_token = bcrypt.genSalt(10, (err, salt) => {
+    .substr(0, 24);
+
+  const hashed_token = bcrypt.genSalt(10, (err, salt) => {
     bcrypt.hash(token, salt, (err, hash) => {
       if (err) {
         console.log(err);
@@ -168,30 +169,15 @@ exports.ForgotPasswordToken = async (req, res) => {
 
   await User.findOne({ username: username }, (err, obj) => {
     const userEmail = obj.email;
-  });
+    let newToken = new Token({
+      tokenUser: username,
+      tokenVal: hashed_token,
+      tokenExpiration: tokenExp,
+    });
 
-  let newToken = new Token({
-    tokenUser: username,
-    tokenVal: hashed_token,
-    tokenExpiration: tokenExp,
+    const resetLink = `https://localhost:5000/password/reset/${token}/${username}`;
+    newToken.save();
+    passwordResetEmail(username, userEmail, resetLink);
+    res.redirect("/login");
   });
-
-  const resetLink = `https://localhost:5000/password/reset/${token}/${username}`;
-  newToken.save();
-  passwordResetEmail(username, userEmail, resetLink);
-  res.redirect("/login");
 };
-
-// bcrypt.genSalt(10, (err, salt) => {
-//   bcrypt.hash(newUser.password, salt, (err, hash) => {
-//     if (err) {
-//       console.log(err);
-//     }
-
-// let newUser = await new User({
-//   username: username,
-//   password: password,
-//   email: email,
-//   lastIp: ip,
-//   role: "user",
-// });

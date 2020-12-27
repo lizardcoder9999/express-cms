@@ -4,7 +4,7 @@ const DOMAIN = process.env.DOMAIN;
 const mailgun = require("mailgun-js")({ apiKey: API_KEY, domain: DOMAIN });
 const supportEmail = process.env.SUPPORT_EMAIL;
 
-function loginNotification(username, ip, time, email) {
+exports.loginNotification = (username, ip, time, email) => {
   const data = {
     from: `Security <${supportEmail}>`,
     to: email,
@@ -17,9 +17,9 @@ function loginNotification(username, ip, time, email) {
   mailgun.messages().send(data, (error, body) => {
     console.log(body);
   });
-}
+};
 
-function passwordResetEmail(username, email, link) {
+exports.passwordResetEmail = (username, email, link) => {
   const data = {
     from: `Account management <${supportEmail}>`,
     to: email,
@@ -37,6 +37,4 @@ function passwordResetEmail(username, email, link) {
   mailgun.messages().send(data, (error, body) => {
     console.log(body);
   });
-}
-
-(module.exports = loginNotification), passwordResetEmail;
+};
