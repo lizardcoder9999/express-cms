@@ -6,7 +6,7 @@ const TokenSchema = new mongoose.Schema({
     required: true,
   },
 
-  tokenValue: {
+  tokenVal: {
     type: String,
     required: true,
   },
@@ -16,3 +16,5 @@ const TokenSchema = new mongoose.Schema({
     required: true,
   },
 });
+
+module.exports = mongoose.model("tokens", TokenSchema);
