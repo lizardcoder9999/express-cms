@@ -64,9 +64,9 @@ exports.renderLogin = async (req, res, next) => {
 //@access Public
 
 exports.loginUser = async (req, res, next) => {
-  username = req.body.username;
-  requestIp = req.ip;
-  userTime = new Date();
+  const username = req.body.username;
+  const requestIp = req.ip;
+  const userTime = new Date();
 
   await User.findOne({ username: username }, (err, obj) => {
     if (err) {

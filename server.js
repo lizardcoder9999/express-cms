@@ -19,6 +19,7 @@ dotenv.config({ path: "./config/config.env" });
 
 //Route files
 const users = require("./routes/users");
+const admins = require("./routes/admin");
 
 //connect to database
 connectDB();
@@ -71,6 +72,7 @@ app.use(bodyParser.json());
 
 //Mount Routers
 app.use(users);
+app.use(admins);
 
 const PORT = process.env.PORT;
 
