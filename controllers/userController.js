@@ -10,6 +10,7 @@ const cookieSession = require("cookie-session");
 require("../config/passport-google");
 const Token = require("../models/Token");
 const { token } = require("morgan");
+const generate = require("meaningful-string");
 
 //@desc Register user
 //@route GET /register
@@ -154,30 +155,31 @@ exports.ForgotPasswordToken = async (req, res) => {
   const time = add_minutes(new Date(), 10).toString();
   const decimalTime = time.replace(/:/g, "").substr("16", "6");
   const tokenExp = decimalTime;
-  const token = Math.random()
-    .toString(24)
-    .replace(/[^a-z]+/g, "")
-    .substr(0, 24);
-
-  const hashed_token = bcrypt.genSalt(10, (err, salt) => {
-    bcrypt.hash(token, salt, (err, hash) => {
-      if (err) {
-        console.log(err);
-      }
-    });
-  });
+  const options = {
+    min: 15,
+    max: 16,
+    capsWithNumbers: true,
+  };
+  const token = generate.random(options);
 
   await User.findOne({ username: username }, (err, obj) => {
     const userEmail = obj.email;
-    let newToken = new Token({
-      tokenUser: username,
-      tokenVal: hashed_token,
-      tokenExpiration: tokenExp,
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(token, salt, (err, hash) => {
+        if (err) {
+          console.log(err);
+        } else {
+          let newToken = new Token({
+            tokenUser: username,
+            tokenVal: hash,
+            tokenExpiration: tokenExp,
+          });
+          const resetLink = `https://localhost:5000/password/reset/${token}/${username}`;
+          newToken.save();
+          passwordResetEmail(username, userEmail, resetLink);
+          res.redirect("/login");
+        }
+      });
     });
-
-    const resetLink = `https://localhost:5000/password/reset/${token}/${username}`;
-    newToken.save();
-    passwordResetEmail(username, userEmail, resetLink);
-    res.redirect("/login");
   });
 };
