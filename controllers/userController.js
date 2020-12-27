@@ -4,10 +4,12 @@ const express = require("express");
 const passport = require("passport");
 const session = require("express-session");
 const path = require("path");
-const loginNotification = require("../utils/mail");
+const { loginNotification, passwordResetEmail } = require("../utils/mail");
 const { time } = require("console");
 const cookieSession = require("cookie-session");
 require("../config/passport-google");
+const Token = require("../models/Token");
+const { token } = require("morgan");
 
 //@desc Register user
 //@route GET /register
@@ -127,3 +129,69 @@ exports.logoutUser = (req, res) => {
   req.logout();
   res.redirect("/login");
 };
+
+//@desc Forgot password page
+//@route GET /forgot-password
+//@access Public
+
+exports.renderForgotPage = async (req, res) => {
+  await res.render("forgotpassword");
+};
+
+/* 
+  @desc
+  Creates and hashes token which expires in 10 minutes and sends password reset email
+  which will bring the user to the new password route.
+*/
+//@route POST /forgot-password
+//@access Public
+
+exports.ForgotPasswordToken = async (req, res) => {
+  username = req.body.username;
+  const add_minutes = function (dt, minutes) {
+    return new Date(dt.getTime() + minutes * 60000);
+  };
+  const time = add_minutes(new Date(), 10).toString();
+  const decimalTime = time.replaceAll(":", "").substr("16", "6");
+  const tokenExp = decimalTime;
+  const token = Math.random()
+    .toString(24)
+    .replace(/[^a-z]+/g, "")
+    .substr(0, 5);
+  hashed_token = bcrypt.genSalt(10, (err, salt) => {
+    bcrypt.hash(token, salt, (err, hash) => {
+      if (err) {
+        console.log(err);
+      }
+    });
+  });
+
+  await User.findOne({ username: username }, (err, obj) => {
+    const userEmail = obj.email;
+  });
+
+  let newToken = new Token({
+    tokenUser: username,
+    tokenVal: hashed_token,
+    tokenExpiration: tokenExp,
+  });
+
+  const resetLink = `https://localhost:5000/password/reset/${token}/${username}`;
+  newToken.save();
+  passwordResetEmail(username, userEmail, resetLink);
+  res.redirect("/login");
+};
+
+// bcrypt.genSalt(10, (err, salt) => {
+//   bcrypt.hash(newUser.password, salt, (err, hash) => {
+//     if (err) {
+//       console.log(err);
+//     }
+
+// let newUser = await new User({
+//   username: username,
+//   password: password,
+//   email: email,
+//   lastIp: ip,
+//   role: "user",
+// });

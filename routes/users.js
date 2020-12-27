@@ -9,6 +9,8 @@ const {
   googleAuth,
   googleAuthCallback,
   logoutUser,
+  renderForgotPage,
+  ForgotPasswordToken,
 } = require("../controllers/userController");
 
 const router = express.Router();
@@ -22,5 +24,10 @@ router.route("/google").get(googleAuth);
 router.route("/google/auth").get(googleAuthCallback);
 
 router.route("/logout").get(logoutUser);
+
+router
+  .route("/forgot-password")
+  .get(renderForgotPage)
+  .post(ForgotPasswordToken);
 
 module.exports = router;
