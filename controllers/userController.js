@@ -15,6 +15,7 @@ require("../config/passport-google");
 const Token = require("../models/Token");
 const { token } = require("morgan");
 const generate = require("meaningful-string");
+const { json } = require("body-parser");
 
 //@desc Register user
 //@route GET /register
@@ -275,4 +276,8 @@ exports.passwordTokenReset = async (req, res, next) => {
   } catch (error) {
     throw error;
   }
+};
+
+exports.renderHomePage = async (req, res, next) => {
+  await res.render("userhome");
 };

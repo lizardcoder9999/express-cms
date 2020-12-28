@@ -13,6 +13,7 @@ const {
   ForgotPasswordToken,
   renderUpdateReset,
   passwordTokenReset,
+  renderHomePage,
 } = require("../controllers/userController");
 
 const router = express.Router();
@@ -36,5 +37,7 @@ router
   .route("/forgot-password")
   .get(renderForgotPage)
   .post(ForgotPasswordToken);
+
+router.route("/home").get(renderHomePage);
 
 module.exports = router;
