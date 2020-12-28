@@ -10,6 +10,7 @@ const passport = require("passport");
 const session = require("express-session");
 const cookieSession = require("cookie-session");
 const googleMiddleware = require("./middleware/google");
+const helmet = require("helmet");
 
 //Passport Google oauth config
 require("./config/passport-google");
@@ -25,6 +26,9 @@ const admins = require("./routes/admin");
 connectDB();
 
 const app = express();
+
+//Helmet middleware
+app.use(helmet());
 
 //Setting views
 app.set("views", "views");
