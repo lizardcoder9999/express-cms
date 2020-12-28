@@ -11,6 +11,8 @@ const {
   logoutUser,
   renderForgotPage,
   ForgotPasswordToken,
+  renderUpdateReset,
+  passwordTokenReset,
 } = require("../controllers/userController");
 
 const router = express.Router();
@@ -24,6 +26,11 @@ router.route("/google").get(googleAuth);
 router.route("/google/auth").get(googleAuthCallback);
 
 router.route("/logout").get(logoutUser);
+
+router
+  .route("/password/reset/:token/:username")
+  .get(renderUpdateReset)
+  .post(passwordTokenReset);
 
 router
   .route("/forgot-password")

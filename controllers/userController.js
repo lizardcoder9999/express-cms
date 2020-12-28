@@ -183,3 +183,58 @@ exports.ForgotPasswordToken = async (req, res) => {
     });
   });
 };
+
+//@desc Reset Password
+//@route GET /password/reset/:token/:username
+//@access Public
+
+exports.renderUpdateReset = async (req, res, next) => {
+  await res.render("resetpass");
+};
+
+//@desc Reset Password
+//@route POST /password/reset/:token/:username
+//@access Public
+
+exports.passwordTokenReset = async (req, res, next) => {
+  const newPassword = req.body.password;
+  const confirmPassword = req.body.passwordConfirm;
+
+  const token = req.params.token;
+  const username = req.params.username;
+
+  try {
+    if (newPassword != confirmPassword) {
+      res.redirect("/forgot-password");
+    } else {
+      await Token.findOne({ tokenUser: username }, (err, obj) => {
+        const dbUserToken = obj.tokenVal;
+        bcrypt.compare(token, dbUserToken, (err, res) => {
+          if (res) {
+            bcrypt.genSalt(10, (err, salt) => {
+              bcrypt.hash(confirmPassword, salt, (err, hash) => {
+                if (err) {
+                  console.log(err);
+                } else {
+                  User.findOneAndUpdate(
+                    { username: username },
+                    { $set: { password: hash } },
+                    (err, obj) => {
+                      console.log("Updated");
+                    }
+                  );
+                  Token.findOneAndDelete({ tokenUser: username });
+                  res.redirect("/login");
+                }
+              });
+            });
+          } else {
+            res.redirect("/forgot-password");
+          }
+        });
+      });
+    }
+  } catch (error) {
+    throw error;
+  }
+};
