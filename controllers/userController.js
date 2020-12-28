@@ -4,7 +4,11 @@ const express = require("express");
 const passport = require("passport");
 const session = require("express-session");
 const path = require("path");
-const { loginNotification, passwordResetEmail } = require("../utils/mail");
+const {
+  loginNotification,
+  passwordResetEmail,
+  passwordResetNotification,
+} = require("../utils/mail");
 const { time } = require("console");
 const cookieSession = require("cookie-session");
 require("../config/passport-google");
@@ -189,7 +193,9 @@ exports.ForgotPasswordToken = async (req, res) => {
 //@access Public
 
 exports.renderUpdateReset = async (req, res, next) => {
-  await res.render("resetpass");
+  const userToken = req.params.token;
+  const username = req.params.username;
+  await res.render("resetpass", { username: username, token: userToken });
 };
 
 //@desc Reset Password
@@ -203,35 +209,67 @@ exports.passwordTokenReset = async (req, res, next) => {
   const token = req.params.token;
   const username = req.params.username;
 
+  User.findOne({ username: username }, (err, obj) => {
+    const email = obj.email;
+    return email;
+  });
+
   try {
     if (newPassword != confirmPassword) {
       res.redirect("/forgot-password");
     } else {
       await Token.findOne({ tokenUser: username }, (err, obj) => {
         const dbUserToken = obj.tokenVal;
-        bcrypt.compare(token, dbUserToken, (err, res) => {
-          if (res) {
-            bcrypt.genSalt(10, (err, salt) => {
-              bcrypt.hash(confirmPassword, salt, (err, hash) => {
-                if (err) {
-                  console.log(err);
-                } else {
-                  User.findOneAndUpdate(
-                    { username: username },
-                    { $set: { password: hash } },
-                    (err, obj) => {
-                      console.log("Updated");
-                    }
-                  );
-                  Token.findOneAndDelete({ tokenUser: username });
-                  res.redirect("/login");
-                }
+        const TokenExpiration = obj.tokenExpiration;
+
+        const get_time = function (dt, minutes) {
+          return new Date(dt.getTime() + minutes * 60000);
+        };
+
+        const time = get_time(new Date(), 0).toString();
+        const decimalTime = time.replace(/:/g, "").substr("16", "6");
+
+        const userReqTime = decimalTime;
+
+        if (userReqTime > TokenExpiration) {
+          res.redirect("/forgot-password");
+        } else {
+          bcrypt.compare(token, dbUserToken, (err, res) => {
+            if (res) {
+              bcrypt.genSalt(10, (err, salt) => {
+                bcrypt.hash(confirmPassword, salt, (err, hash) => {
+                  if (err) {
+                    console.log(err);
+                  } else {
+                    User.findOneAndUpdate(
+                      { username: username },
+                      { $set: { password: hash } },
+                      (err, obj) => {
+                        console.log("Updated");
+                      }
+                    );
+                    Token.findOneAndDelete(
+                      { tokenUser: username },
+                      (err, docs) => {
+                        if (err) {
+                          console.log(err);
+                        } else {
+                          User.findOne({ username: username }, (err, obj) => {
+                            const email = obj.email;
+                            passwordResetNotification(username, time, email);
+                            // res.redirect("/login");
+                          });
+                        }
+                      }
+                    );
+                  }
+                });
               });
-            });
-          } else {
-            res.redirect("/forgot-password");
-          }
-        });
+            } else {
+              res.redirect("/forgot-password");
+            }
+          });
+        }
       });
     }
   } catch (error) {

@@ -78,7 +78,7 @@
   </head>
   <body>
     <div class="login-form">
-      <form action="/login" method="POST">
+      <form action="/password/reset/<%=token%>/<%=username%>" method="POST">
         <h2 class="text-center">Enter new password</h2>
         <div class="text-center social-btn">
         </div>
@@ -86,7 +86,7 @@
           <div class="input-group">
             <div class="input-group-prepend">
               <span class="input-group-text">
-                <span class="fa fa-user"></span>
+                <span class="fa fa-lock"></span>
               </span>
             </div>
             <input

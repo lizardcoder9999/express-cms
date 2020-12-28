@@ -38,3 +38,18 @@ exports.passwordResetEmail = (username, email, link) => {
     console.log(body);
   });
 };
+
+exports.passwordResetNotification = (username, time, email) => {
+  const data = {
+    from: `Account management <${supportEmail}>`,
+    to: email,
+    subject: "Password succesfully changed",
+    html: `
+      <h1> Your password has been changed </h1>
+      <p>
+        Hello ${username}, Your password was succesfully reset at ${time}.
+      </p>
+    
+    `,
+  };
+};
