@@ -52,4 +52,7 @@ exports.passwordResetNotification = (username, time, email) => {
     
     `,
   };
+  mailgun.messages().send(data, (error, body) => {
+    console.log(body);
+  });
 };
