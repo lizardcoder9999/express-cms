@@ -104,6 +104,7 @@ exports.loginUser = async (req, res, next) => {
   })(req, res, next);
   ses = req.session;
   ses.username = username;
+  ses.userlogger = "loggedin";
 };
 
 //@desc Login user via oauth
@@ -278,6 +279,31 @@ exports.passwordTokenReset = async (req, res, next) => {
   }
 };
 
+//@desc Render home page
+//@route GET /home
+//@access Public
+
 exports.renderHomePage = async (req, res, next) => {
-  await res.render("userhome");
+  if (req.session.userlogger != "loggedin") {
+    await res.redirect("/register");
+  } else {
+    await res.render("userhome");
+  }
 };
+
+//@desc Render user profile
+//@route GET /profile
+//@access Public
+
+exports.renderUserProfile = async (req, res, next) => {
+  if (req.session.userlogger != "loggedin") {
+    await res.redirect("/login");
+  } else {
+    const username = req.session.username;
+    User.findOne({ username: username }, (err, obj) => {
+      const imageLink = obj.imageLink;
+      await res.render("userprofile",{username:username, imageLink:imageLink});
+    });
+  }
+};
+

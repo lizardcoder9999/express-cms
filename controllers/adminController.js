@@ -57,3 +57,59 @@ exports.loginAdmin = async (req, res, next) => {
   ses.admin = "admin";
   ses.username = username;
 };
+
+//@desc Renders add user page
+//@route GET /admin/adduser
+//@access Admin
+
+exports.renderAddUser = async (req, res, next) => {
+  if (req.session.admin != "admin") {
+    await res.redirect("/admin/login"); //Create template for this
+  } else {
+    await res.render("adminadduser");
+  }
+};
+
+//@desc Creates new user
+//@route POST /admin/adduser
+//@access Public
+
+exports.createUser = async (req, res, next) => {
+  if (req.session.admin != "admin") {
+    await res.redirect("/admin/login");
+  } else {
+    try {
+      const username = req.body.username;
+      const password = req.body.password;
+      const email = req.body.email;
+      const ip = req.ip;
+      const role = req.body.role;
+
+      let newUser = await new User({
+        username: username,
+        password: password,
+        email: email,
+        lastIp: ip,
+        role: role,
+      });
+
+      bcrypt.genSalt(10, (err, salt) => {
+        bcrypt.hash(newUser.password, salt, (err, hash) => {
+          if (err) {
+            console.log(err);
+          }
+          newUser.password = hash;
+          newUser.save((err) => {
+            if (err) {
+              throw err;
+            } else {
+              res.redirect("/admin/adduser");
+            }
+          });
+        });
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+};
